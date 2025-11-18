@@ -4,44 +4,40 @@
 void SoundManager::LoadMusic(const char* path)
 {
     music = LoadMusicStream(path);
+
     if (music.ctxData != NULL) {
         musicLoaded = true;
         music.looping = true;
+    }
+    else {
+        TraceLog(LOG_ERROR, "FAILED TO LOAD MUSIC: %s", path);
     }
 }
 
 void SoundManager::PlayMusic()
 {
-    if (musicLoaded) {
+    if (musicLoaded)
         PlayMusicStream(music);
-    }
 }
 
 void SoundManager::UpdateMusic()
 {
-    if (musicLoaded) {
+    if (musicLoaded)
         UpdateMusicStream(music);
-    }
 }
 
 void SoundManager::ToggleMusic()
 {
     if (!musicLoaded) return;
 
-    // Đang chơi -> pause
-    if (IsMusicPlaying()) {
+    if (IsMusicStreamPlaying(music))
         PauseMusicStream(music);
-    }
-    // Đang tắt -> resume
-    else {
+    else
         ResumeMusicStream(music);
-    }
 }
 
 bool SoundManager::IsMusicPlaying()
 {
     if (!musicLoaded) return false;
-
-    return IsAudioStreamPlaying(music.stream);
-
+    return IsMusicStreamPlaying(music);
 }
