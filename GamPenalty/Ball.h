@@ -1,4 +1,3 @@
-﻿// File: ball.h
 #pragma once
 #include "raylib.h"
 
