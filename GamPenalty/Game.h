@@ -26,8 +26,12 @@ private:
     Vector2 mouse;
     float dt;
 
+    // --- ASSETS ---
     Texture2D texGoal, texKeeper, texBall, texGrass;
+    Texture2D texKeeperLeft, texKeeperRight;
+
     bool hasGoal, hasKeeper, hasBall, hasGrass;
+    bool hasKeeperLeft, hasKeeperRight;
 
     Button btnPlayAgain, btnBackToMenu;
     Rectangle goal;
@@ -37,10 +41,16 @@ private:
     int shots;
     int goalsCount;
     bool nextShotReady;
+
+    // Biến kết quả
     bool goal_scored;
     bool shotFailed;
     bool shotIsOverBar;
     bool shotIsOutWide;
+
+    // [MỚI] Biến để hiện chữ GOAL/MISS
+    bool showResult;     // Có đang hiện chữ không?
+    float resultTimer;   // Thời gian hiện chữ (2 giây)
 
     ShotState shotState;
     Vector2 aimStartPos;
@@ -48,8 +58,8 @@ private:
     float aimRadius;
     float aimTimer;
 
-    const float AIM_SPEED_Y = 400.0f;
-    const float AIM_SPEED_X = 400.0f;
+    const float AIM_SPEED_Y = 550.0f;
+    const float AIM_SPEED_X = 550.0f;
     const float POWER_BASE = 950.0f;
     const float AIM_TIMER_DURATION = 1.0f;
 };
