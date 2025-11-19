@@ -1,6 +1,5 @@
-﻿// File: ball.cpp
 #include "ball.h"
-#include "constants.h" // Cần để lấy SCREEN_W, SCREEN_H
+#include "constants.h"
 
 Ball::Ball() {
     Reset();
@@ -9,6 +8,7 @@ Ball::Ball() {
 }
 
 void Ball::Reset() {
+    // Căn giữa bóng theo màn hình 1500px
     pos = { SCREEN_W / 2.0f, SCREEN_H - 150.0f };
     vel = { 0,0 };
     moving = false;
