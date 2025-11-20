@@ -4,15 +4,41 @@
 
 // === Constructor ===
 Game::Game() {
+    // Khởi tạo các Texture2D
     texGoal = { 0 }; texKeeper = { 0 }; texBall = { 0 }; texGrass = { 0 };
     texKeeperLeft = { 0 }; texKeeperRight = { 0 };
-    internalState = INTERNAL_PLAYING;
 
-    // [QUAN TRỌNG] Khởi tạo giá trị mặc định để không bị lỗi hiển thị
+    // [FIX C26495] Khởi tạo tất cả các biến
+    internalState = INTERNAL_PLAYING;
+    dt = 0.0f;
+
+    // Biến Assets
+    hasGoal = hasKeeper = hasBall = hasGrass = false;
+    hasKeeperLeft = hasKeeperRight = false;
+
+    // Khởi tạo các biến Button/Rectangle
+    btnPlayAgain = { {0,0,0,0}, "", BLACK };
+    btnBackToMenu = { {0,0,0,0}, "", BLACK };
+    goal = { 0, 0, 0, 0 }; // Khởi tạo Rectangle
+
+    // Biến logic
+    shots = 0; goalsCount = 0;
+    nextShotReady = true;
+
+    // Biến kết quả
     showResult = false;
     goal_scored = false;
     shotFailed = false;
+    shotIsOverBar = false;
+    shotIsOutWide = false;
     resultTimer = 0.0f;
+
+    // Biến aim
+    shotState = STATE_READY;
+    aimRadius = 30.0f;
+    aimTimer = 0.0f;
+    aimStartPos = { 0.0f, 0.0f };
+    aimReticle = { 0.0f, 0.0f };
 }
 
 // === Destructor ===
@@ -61,7 +87,7 @@ void Game::InitGame() {
     // Reset thủ môn
     keeper.Reset(goal.x, goal.width, goal.y, goal.height - 30.0f);
 
-    // [UPDATED] Đặt tâm ngắm cao lên (giữa khung thành) thay vì dưới đất
+    // Đặt tâm ngắm
     aimStartPos = { SCREEN_W / 2.0f, goal.y + goal.height - 100.0f };
 
     // Reset Logic Vars
@@ -81,7 +107,7 @@ void Game::InitGame() {
     internalState = INTERNAL_PLAYING;
 }
 
-// === Giải phóng ===
+// === Giải phóng (Giữ nguyên) ===
 void Game::UnloadGame() {
     if (texGoal.id != 0) UnloadTexture(texGoal);
     if (texKeeper.id != 0) UnloadTexture(texKeeper);
@@ -95,20 +121,20 @@ void Game::UnloadGame() {
     texBall.id = 0; texGrass.id = 0;
 }
 
-// === Update Chung ===
-void Game::Update(GameState& globalState) {
+// === Update Chung (Giữ nguyên) ===
+void Game::Update(GameState& globalState, SoundManager& soundManager) {
     dt = GetFrameTime();
     mouse = GetMousePosition();
     if (IsKeyPressed(KEY_ESCAPE)) globalState = STATE_MENU;
 
-    if (internalState == INTERNAL_PLAYING) UpdatePlaying(globalState);
+    if (internalState == INTERNAL_PLAYING) UpdatePlaying(globalState, soundManager);
     else if (internalState == INTERNAL_RESULT) UpdateResult(globalState);
 }
 
 // === Update Logic Gameplay ===
-void Game::UpdatePlaying(GameState& globalState) {
+void Game::UpdatePlaying(GameState& globalState, SoundManager& soundManager) {
 
-    // --- LOGIC HIỆN CHỮ KẾT QUẢ (Delay 2 giây) ---
+    // --- LOGIC HIỆN CHỮ KẾT QUẢ (Delay) ---
     if (showResult) {
         resultTimer -= dt;
         if (resultTimer <= 0.0f) {
@@ -124,7 +150,7 @@ void Game::UpdatePlaying(GameState& globalState) {
         return; // Dừng xử lý sút khi đang hiện chữ
     }
 
-    // 1. Chuẩn bị
+    // 1. Chuẩn bị (Giữ nguyên)
     if (shotState == STATE_READY && nextShotReady) {
         aimReticle = aimStartPos;
         if (IsKeyPressed(KEY_D)) {
@@ -135,7 +161,7 @@ void Game::UpdatePlaying(GameState& globalState) {
         }
     }
 
-    // 2. Chỉnh độ cao
+    // 2. Chỉnh độ cao (Giữ nguyên)
     if (shotState == STATE_AIM_VERTICAL) {
         if (IsKeyDown(KEY_D)) {
             aimReticle.y -= AIM_SPEED_Y * dt;
@@ -148,7 +174,7 @@ void Game::UpdatePlaying(GameState& globalState) {
         }
     }
 
-    // 3. Chỉnh hướng ngang
+    // 3. Chỉnh hướng ngang (Giữ nguyên)
     if (shotState == STATE_AIM_HORIZONTAL) {
         aimTimer -= dt;
         if (IsKeyDown(KEY_LEFT)) aimReticle.x -= AIM_SPEED_X * dt;
@@ -161,7 +187,7 @@ void Game::UpdatePlaying(GameState& globalState) {
         if (aimTimer <= 0.0f) shotState = STATE_FIRED;
     }
 
-    // 4. Giai đoạn SÚT
+    // 4. Giai đoạn SÚT (Giữ nguyên)
     if (shotState == STATE_FIRED && !ball.moving) {
         ball.moving = true;
         shots++;
@@ -196,7 +222,7 @@ void Game::UpdatePlaying(GameState& globalState) {
         ball.pos.y += ball.vel.y * dt;
 
         // ====================================================
-        // [UPDATED] 5A. XỬ LÝ BÓNG ĐẬP THỦ MÔN VĂNG RA
+        // 5A. XỬ LÝ BÓNG ĐẬP THỦ MÔN VĂNG RA (Giữ nguyên)
         // ====================================================
 
         // Tìm điểm gần nhất trên hình chữ nhật thủ môn
@@ -235,7 +261,6 @@ void Game::UpdatePlaying(GameState& globalState) {
             ball.vel.y = normalY * bounceForce;
 
             // [QUAN TRỌNG]: Không gọi return hay showResult ở đây.
-            // Để bóng tiếp tục di chuyển (văng ra) cho đến khi ra khỏi màn hình (mục 5C).
         }
 
         // 5B. Kiểm tra Ghi Bàn (Chỉ check nếu chưa va chạm thủ môn)
@@ -251,30 +276,35 @@ void Game::UpdatePlaying(GameState& globalState) {
                 goal_scored = true;
                 ball.moving = false; // Dừng bóng nếu vào gôn
 
+                // PHÁT ÂM THANH GHI BÀN
+                soundManager.PlayGoalSFX();
+
                 // Bật thông báo ngay lập tức nếu vào gôn
                 showResult = true;
-                resultTimer = 2.0f;
+                resultTimer = 5.0f; // GOAL 5 GIÂY
                 return;
             }
         }
 
         // 5C. Reset khi bóng bay ra ngoài màn hình
-        // (Bao gồm cả trường hợp sút ra ngoài VÀ trường hợp bóng đập thủ môn văng ra ngoài)
         if (ball.pos.y < -200 || ball.pos.y > SCREEN_H + 200 || ball.pos.x < -200 || ball.pos.x > SCREEN_W + 200) {
             ball.moving = false;
 
-            // Nếu chưa có trạng thái nào (ví dụ sút thẳng ra ngoài mà ko chạm ai) thì tính là hỏng
+            // Nếu chưa có trạng thái nào thì tính là hỏng
             if (!goal_scored && !shotFailed) shotFailed = true;
+
+            // PHÁT ÂM THANH SÚT HỎNG
+            if (!goal_scored) soundManager.PlayMissSFX();
 
             // Lúc này mới hiện bảng kết quả
             showResult = true;
-            resultTimer = 2.0f;
+            resultTimer = 3.0f; // MISS 3 GIÂY
             return;
         }
     }
 }
 
-// === Update Kết quả ===
+// === Update Kết quả & Draw (Giữ nguyên) ===
 void Game::UpdateResult(GameState& globalState) {
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (CheckCollisionPointRec(mouse, btnPlayAgain.rect)) InitGame();
@@ -282,7 +312,6 @@ void Game::UpdateResult(GameState& globalState) {
     }
 }
 
-// === Vẽ Game ===
 void Game::Draw() {
     if (internalState == INTERNAL_PLAYING) DrawPlaying();
     else if (internalState == INTERNAL_RESULT) DrawResult();
@@ -329,9 +358,7 @@ void Game::DrawPlaying() {
     else if (shotState == STATE_AIM_VERTICAL) DrawText("HOLD 'D' to aim UP... RELEASE to lock", SCREEN_W / 2 - 220, SCREEN_H - 50, 24, YELLOW);
     else if (shotState == STATE_AIM_HORIZONTAL) DrawText(TextFormat("Use ARROWS Left/Right! Shoot in: %.1f", aimTimer), SCREEN_W / 2 - 230, SCREEN_H - 50, 24, LIME);
 
-    // ========================================================
-    // *** VẼ CHỮ KẾT QUẢ (Chỉ hiện khi showResult = true) ***
-    // ========================================================
+    // VẼ CHỮ KẾT QUẢ
     if (showResult) {
         const char* text;
         Color color;
@@ -341,8 +368,6 @@ void Game::DrawPlaying() {
             color = GREEN;
         }
         else if (shotFailed) {
-            // Phân biệt: Nếu đập thủ môn thì hiện SAVED, nếu sút ra ngoài thì hiện MISS
-            // Nhưng để đơn giản, ta dùng MISS chung, hoặc bạn có thể thêm biến bool keeperSaved.
             text = "MISS!";
             color = RED;
         }
