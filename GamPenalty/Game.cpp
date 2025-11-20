@@ -1,6 +1,6 @@
 #include "game.h"
 #include <cstdio>  // Dùng cho sprintf, TextFormat
-#include <cmath>   // Dùng cho fmaxf, fminf, cos, sin
+#include <cmath>   // Dùng cho fmaxf, fminf, cos, sin, sqrtf
 
 // === Constructor ===
 Game::Game() {
@@ -61,7 +61,8 @@ void Game::InitGame() {
     // Reset thủ môn
     keeper.Reset(goal.x, goal.width, goal.y, goal.height - 30.0f);
 
-    aimStartPos = { SCREEN_W / 2.0f, goal.y + goal.height + 40.0f };
+    // [UPDATED] Đặt tâm ngắm cao lên (giữa khung thành) thay vì dưới đất
+    aimStartPos = { SCREEN_W / 2.0f, goal.y + goal.height - 100.0f };
 
     // Reset Logic Vars
     shots = 0; goalsCount = 0;
@@ -194,23 +195,50 @@ void Game::UpdatePlaying(GameState& globalState) {
         ball.pos.x += ball.vel.x * dt;
         ball.pos.y += ball.vel.y * dt;
 
-        // 5A. Va chạm Thủ môn
-        float nx = fmaxf(keeper.rect.x, fminf(ball.pos.x, keeper.rect.x + keeper.rect.width));
-        float ny = fmaxf(keeper.rect.y, fminf(ball.pos.y, keeper.rect.y + keeper.rect.height));
-        float dx = ball.pos.x - nx;
-        float dy = ball.pos.y - ny;
+        // ====================================================
+        // [UPDATED] 5A. XỬ LÝ BÓNG ĐẬP THỦ MÔN VĂNG RA
+        // ====================================================
 
-        if (dx * dx + dy * dy <= ball.radius * ball.radius) {
-            ball.moving = false;
-            shotFailed = true;
+        // Tìm điểm gần nhất trên hình chữ nhật thủ môn
+        float closestX = fmaxf(keeper.rect.x, fminf(ball.pos.x, keeper.rect.x + keeper.rect.width));
+        float closestY = fmaxf(keeper.rect.y, fminf(ball.pos.y, keeper.rect.y + keeper.rect.height));
 
-            // Bật thông báo
-            showResult = true;
-            resultTimer = 2.0f;
-            return;
+        float dx = ball.pos.x - closestX;
+        float dy = ball.pos.y - closestY;
+        float distSqr = dx * dx + dy * dy;
+
+        // Nếu va chạm (khoảng cách nhỏ hơn bán kính) VÀ chưa bị tính là sút hỏng
+        if (distSqr <= (ball.radius * ball.radius) && !shotFailed) {
+
+            shotFailed = true; // Đánh dấu là sút hỏng (Cứu thua)
+
+            // Tính vector phản xạ
+            float dist = sqrtf(distSqr);
+            float normalX, normalY;
+
+            // Tránh chia cho 0 nếu tâm bóng trùng khít điểm va chạm
+            if (dist == 0.0f) { normalX = 0; normalY = 1; }
+            else { normalX = dx / dist; normalY = dy / dist; }
+
+            // Đẩy bóng ra khỏi vùng va chạm 1 chút để không bị kẹt
+            ball.pos.x = closestX + normalX * (ball.radius + 2.0f);
+            ball.pos.y = closestY + normalY * (ball.radius + 2.0f);
+
+            // Tính tốc độ hiện tại
+            float currentSpeed = sqrtf(ball.vel.x * ball.vel.x + ball.vel.y * ball.vel.y);
+
+            // Giảm lực nảy (0.8 = nảy lại 80% lực)
+            float bounceForce = currentSpeed * 2.0f;
+
+            // Gán vận tốc mới theo hướng phản xạ
+            ball.vel.x = normalX * bounceForce;
+            ball.vel.y = normalY * bounceForce;
+
+            // [QUAN TRỌNG]: Không gọi return hay showResult ở đây.
+            // Để bóng tiếp tục di chuyển (văng ra) cho đến khi ra khỏi màn hình (mục 5C).
         }
 
-        // 5B. Kiểm tra Ghi Bàn (Bóng dừng tại tâm ngắm)
+        // 5B. Kiểm tra Ghi Bàn (Chỉ check nếu chưa va chạm thủ môn)
         float stopLine = aimReticle.y;
 
         if (!goal_scored && !shotFailed && ball.pos.y <= stopLine) {
@@ -221,21 +249,24 @@ void Game::UpdatePlaying(GameState& globalState) {
                 // Goal
                 goalsCount++;
                 goal_scored = true;
-                ball.moving = false;
+                ball.moving = false; // Dừng bóng nếu vào gôn
 
-                // Bật thông báo
+                // Bật thông báo ngay lập tức nếu vào gôn
                 showResult = true;
                 resultTimer = 2.0f;
                 return;
             }
         }
 
-        // 5C. Reset ra ngoài
-        if (ball.pos.y < -200 || ball.pos.x < -200 || ball.pos.x > SCREEN_W + 200) {
+        // 5C. Reset khi bóng bay ra ngoài màn hình
+        // (Bao gồm cả trường hợp sút ra ngoài VÀ trường hợp bóng đập thủ môn văng ra ngoài)
+        if (ball.pos.y < -200 || ball.pos.y > SCREEN_H + 200 || ball.pos.x < -200 || ball.pos.x > SCREEN_W + 200) {
             ball.moving = false;
-            shotFailed = true;
 
-            // Bật thông báo
+            // Nếu chưa có trạng thái nào (ví dụ sút thẳng ra ngoài mà ko chạm ai) thì tính là hỏng
+            if (!goal_scored && !shotFailed) shotFailed = true;
+
+            // Lúc này mới hiện bảng kết quả
             showResult = true;
             resultTimer = 2.0f;
             return;
@@ -299,7 +330,7 @@ void Game::DrawPlaying() {
     else if (shotState == STATE_AIM_HORIZONTAL) DrawText(TextFormat("Use ARROWS Left/Right! Shoot in: %.1f", aimTimer), SCREEN_W / 2 - 230, SCREEN_H - 50, 24, LIME);
 
     // ========================================================
-    // *** [CĂN GIỮA CHUẨN] VẼ CHỮ GOAL / MISS ***
+    // *** VẼ CHỮ KẾT QUẢ (Chỉ hiện khi showResult = true) ***
     // ========================================================
     if (showResult) {
         const char* text;
@@ -309,6 +340,12 @@ void Game::DrawPlaying() {
             text = "GOAL!!!";
             color = GREEN;
         }
+        else if (shotFailed) {
+            // Phân biệt: Nếu đập thủ môn thì hiện SAVED, nếu sút ra ngoài thì hiện MISS
+            // Nhưng để đơn giản, ta dùng MISS chung, hoặc bạn có thể thêm biến bool keeperSaved.
+            text = "MISS!";
+            color = RED;
+        }
         else {
             text = "MISS!";
             color = RED;
@@ -317,21 +354,16 @@ void Game::DrawPlaying() {
         int fontSize = 150;
         int textW = MeasureText(text, fontSize);
 
-        // Tính toán tọa độ X để căn giữa màn hình
         int textX = (SCREEN_W - textW) / 2;
         int textY = (SCREEN_H - fontSize) / 2 - 50;
 
-        DrawText(text, textX + 5, textY + 5, fontSize, BLACK); // Bóng đổ
-        DrawText(text, textX, textY, fontSize, color);         // Chữ chính
+        DrawText(text, textX + 5, textY + 5, fontSize, BLACK);
+        DrawText(text, textX, textY, fontSize, color);
     }
 }
 
 void Game::DrawResult() {
     DrawRectangle(0, 0, SCREEN_W, SCREEN_H, Fade(BLACK, 0.85f));
-
-    // ========================================================
-    // *** [CĂN GIỮA CHUẨN] MÀN HÌNH KẾT QUẢ ***
-    // ========================================================
 
     const char* title = "MATCH RESULT";
     int titleSize = 60;
