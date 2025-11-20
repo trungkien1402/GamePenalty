@@ -11,7 +11,7 @@ const float SIZE_STAND_W = 190.0f;
 const float SIZE_STAND_H = 190.0f;
 
 // 2. VỊ TRÍ ĐỨNG DỌC (Y)
-const float KEEPER_Y_POS = 250.0f;
+const float KEEPER_Y_POS = 240.0f;
 
 // 3. VỊ TRÍ ĐỨNG NGANG (X) - SỬA SỐ NÀY LÀ THỦ MÔN DỊCH THEO
 // 750 (Tâm màn hình) - 95 (Nửa người) = 655
