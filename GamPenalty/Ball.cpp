@@ -3,13 +3,12 @@
 
 Ball::Ball() {
     Reset();
-    radius = 18.0f;
+    radius = 18.0f;//bán kính
     moving = false;
 }
 
 void Ball::Reset() {
-    // Căn giữa bóng theo màn hình 1500px
     pos = { SCREEN_W / 2.0f, SCREEN_H - 150.0f };
-    vel = { 0,0 };
+    vel = { 0,0 };//vận tốc
     moving = false;
 }
