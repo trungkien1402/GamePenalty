@@ -12,6 +12,10 @@ int main()
 
     SoundManager soundManager;
     soundManager.LoadMusic("Assets/nhacnen.mp3");
+
+    // Tải hiệu ứng âm thanh
+    soundManager.LoadSFX("Assets/goal.mp3", "Assets/miss.mp3");
+
     soundManager.PlayMusic();
 
     Game gameInstance;
@@ -40,7 +44,7 @@ int main()
                 gameInstance.InitGame();
                 gameInitialized = true;
             }
-            gameInstance.Update(state);
+            gameInstance.Update(state, soundManager); // [FIX] Truyền soundManager
             break;
 
         case STATE_INSTRUCTIONS:
