@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-﻿#pragma once
-=======
 #pragma once
->>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f
 #include "raylib.h"
 #include "constants.h"
 #include "ball.h"
@@ -67,8 +63,4 @@ private:
     const float AIM_SPEED_X = 700.0f;
     const float POWER_BASE = 950.0f;
     const float AIM_TIMER_DURATION = 1.0f;
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f
