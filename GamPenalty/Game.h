@@ -5,19 +5,20 @@
 #include "keeper.h"
 #include "button.h"
 #include "GameState.h"
+#include "sound.h"
 
 class Game {
 public:
     Game();
     ~Game();
 
-    void Update(GameState& globalState);
+    void Update(GameState& globalState, SoundManager& soundManager);
     void Draw();
     void InitGame();
     void UnloadGame();
 
 private:
-    void UpdatePlaying(GameState& globalState);
+    void UpdatePlaying(GameState& globalState, SoundManager& soundManager);
     void UpdateResult(GameState& globalState);
     void DrawPlaying();
     void DrawResult();
@@ -48,7 +49,7 @@ private:
     bool shotIsOverBar;
     bool shotIsOutWide;
 
-    // [MỚI] Biến để hiện chữ GOAL/MISS
+    // Biến để hiện chữ GOAL/MISS
     bool showResult;     // Có đang hiện chữ không?
     float resultTimer;   // Thời gian hiện chữ (2 giây)
 
