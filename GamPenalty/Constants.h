@@ -5,7 +5,7 @@
 #define SCREEN_H 900
 
 #define MAX_SHOTS 7
-#define PI 3.1415926f
+// Đã xoá: #define PI 3.1415926f (vì Raylib đã có)
 
 // Trạng thái nội bộ của Gameplay
 enum InternalState {
