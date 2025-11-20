@@ -58,8 +58,8 @@ private:
     float aimRadius;
     float aimTimer;
 
-    const float AIM_SPEED_Y = 550.0f;
-    const float AIM_SPEED_X = 550.0f;
+    const float AIM_SPEED_Y = 870.0f;
+    const float AIM_SPEED_X = 700.0f;
     const float POWER_BASE = 950.0f;
     const float AIM_TIMER_DURATION = 1.0f;
 };
