@@ -1,10 +1,21 @@
 ﻿#include "sound.h"
 #include "raylib.h"
 
-void SoundManager::LoadMusic(const char* path)
-{
-    music = LoadMusicStream(path);
+// Biến tĩnh (static) để lưu trạng thái nhạc nền trước khi tạm dừng bởi SFX
+static bool wasMusicPlayingBeforeSFX = false;
 
+// [TRIỂN KHAI CONSTRUCTOR] Khắc phục lỗi VCR001 và C26495
+SoundManager::SoundManager() {
+    music = { 0 };
+    musicLoaded = false;
+    goalSFX = { 0 };
+    missSFX = { 0 };
+}
+
+// === HÀM TẢI NHẠC NỀN ===
+
+void SoundManager::LoadMusic(const char* path) {
+    music = LoadMusicStream(path);
     if (music.ctxData != NULL) {
         musicLoaded = true;
         music.looping = true;
@@ -14,30 +25,62 @@ void SoundManager::LoadMusic(const char* path)
     }
 }
 
-void SoundManager::PlayMusic()
-{
-    if (musicLoaded)
-        PlayMusicStream(music);
+// Implement hàm LoadSFX
+void SoundManager::LoadSFX(const char* goalPath, const char* missPath) {
+    goalSFX = LoadSound(goalPath);
+    missSFX = LoadSound(missPath);
 }
 
-void SoundManager::UpdateMusic()
-{
-    if (musicLoaded)
+// [HÀM QUẢN LÝ SFX] Kiểm tra xem SFX đã chơi xong chưa
+bool SoundManager::IsSFXPlaying() {
+    return IsSoundPlaying(goalSFX) || IsSoundPlaying(missSFX);
+}
+
+// === HÀM CẬP NHẬT VÀ XỬ LÝ NHẠC NỀN ===
+
+void SoundManager::UpdateMusic() {
+    // 1. Cập nhật stream nhạc nếu đang chơi
+    if (musicLoaded && IsMusicStreamPlaying(music)) {
         UpdateMusicStream(music);
-}
+    }
 
-void SoundManager::ToggleMusic()
-{
-    if (!musicLoaded) return;
-
-    if (IsMusicStreamPlaying(music))
-        PauseMusicStream(music);
-    else
+    // 2. [LOGIC RESUME]
+    // Nếu nhạc đã bị tạm dừng do SFX VÀ SFX đã chơi xong THÌ: Bật nhạc lại
+    if (musicLoaded && wasMusicPlayingBeforeSFX && !IsMusicStreamPlaying(music) && !IsSFXPlaying()) {
         ResumeMusicStream(music);
+        wasMusicPlayingBeforeSFX = false; // Reset cờ
+    }
 }
 
-bool SoundManager::IsMusicPlaying()
-{
+// === CÁC HÀM PHÁT ===
+
+// [FIX LỖI C2039/C2065] Hàm PlayMusic
+void SoundManager::PlayMusic() {
+    if (musicLoaded) {
+        PlayMusicStream(music);
+    }
+}
+
+void SoundManager::ToggleMusic() {
+    if (!musicLoaded) return;
+    if (IsMusicStreamPlaying(music)) PauseMusicStream(music);
+    else ResumeMusicStream(music);
+}
+
+bool SoundManager::IsMusicPlaying() {
     if (!musicLoaded) return false;
     return IsMusicStreamPlaying(music);
+}
+
+// Implement hàm PlaySFX (có xử lý Pause/Resume nhạc nền)
+void SoundManager::PlayGoalSFX() {
+    wasMusicPlayingBeforeSFX = IsMusicStreamPlaying(music);
+    if (wasMusicPlayingBeforeSFX) PauseMusicStream(music);
+    PlaySound(goalSFX);
+}
+
+void SoundManager::PlayMissSFX() {
+    wasMusicPlayingBeforeSFX = IsMusicStreamPlaying(music);
+    if (wasMusicPlayingBeforeSFX) PauseMusicStream(music);
+    PlaySound(missSFX);
 }
