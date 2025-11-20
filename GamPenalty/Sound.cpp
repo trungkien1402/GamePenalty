@@ -1,4 +1,4 @@
-﻿#include "sound.h"
+#include "sound.h"
 #include "raylib.h"
 
 // Biến tĩnh (static) để lưu trạng thái nhạc nền trước khi tạm dừng bởi SFX
@@ -83,4 +83,8 @@ void SoundManager::PlayMissSFX() {
     wasMusicPlayingBeforeSFX = IsMusicStreamPlaying(music);
     if (wasMusicPlayingBeforeSFX) PauseMusicStream(music);
     PlaySound(missSFX);
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f

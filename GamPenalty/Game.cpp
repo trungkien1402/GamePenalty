@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿#include "game.h"
+=======
+#include "game.h"
+>>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f
 #include <cstdio>  // Dùng cho sprintf, TextFormat
 #include <cmath>   // Dùng cho fmaxf, fminf, cos, sin, sqrtf
 
@@ -408,4 +412,8 @@ void Game::DrawResult() {
 
     DrawButton(btnPlayAgain);
     DrawButton(btnBackToMenu);
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f

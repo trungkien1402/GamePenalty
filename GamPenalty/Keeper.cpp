@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿#include "keeper.h"
+=======
+#include "keeper.h"
+>>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f
 #include "raylib.h"
 #include <cmath>
 
@@ -87,4 +91,8 @@ void Keeper::Update(float dt, bool ballMoving) {
         else if (rect.x < centerX) rect.x += move;
         else rect.x -= move;
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f

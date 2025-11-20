@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿#include "raylib.h"
+=======
+#include "raylib.h"
+>>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f
 #include "constants.h"
 #include "GameState.h"
 #include "menu.h"

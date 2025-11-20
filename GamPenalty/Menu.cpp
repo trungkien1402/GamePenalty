@@ -1,4 +1,4 @@
-﻿#include "menu.h"
+#include "menu.h"
 #include "raylib.h"
 #include "constants.h"
 

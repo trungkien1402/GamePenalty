@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿#pragma once
+=======
+#pragma once
+>>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f
 #include "raylib.h"
 
 struct Keeper {
@@ -10,4 +14,8 @@ struct Keeper {
     Keeper();
     void Reset(float goalX, float goalW, float goalY, float goalH);
     void Update(float dt, bool ballMoving);
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f
