@@ -27,8 +27,4 @@ public:
     void PlayGoalSFX();
     void PlayMissSFX();
     bool IsSFXPlaying();
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 9b706097fc97aff184be64f9d710b8c7030e988f
